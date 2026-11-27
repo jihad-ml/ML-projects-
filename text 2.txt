@@ -1,0 +1,348 @@
+# =====================================
+# PROJECT A: STUDENT PERFORMANCE
+# =====================================
+
+# 1. Load dataset
+df = pd.read_csv("Students Performance.csv")
+
+print("First 5 rows:")
+print(df.head())
+
+# 2. Select features
+X = df[['Study Hours']]
+y = df['Score']
+
+# 3. Split dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=42
+)
+
+# 4. Create model
+model = LinearRegression()
+
+# 5. Train model
+model.fit(X_train, y_train)
+
+# 6. Check slope and intercept
+print("Slope:", model.coef_[0])
+print("Intercept:", model.intercept_)
+
+# 7. Predict test data
+y_pred = model.predict(X_test)
+
+print("Predicted Scores:")
+print(y_pred)
+
+# 8. Evaluate model
+mae = mean_absolute_error(y_test, y_pred)
+
+print("Mean Absolute Error:", mae)
+
+# 9. Predict new student score
+new_student = pd.DataFrame({
+    'Study Hours': [5]
+})
+
+prediction = model.predict(new_student)
+
+print("Predicted Score for 5 Study Hours:",
+      prediction[0])
+
+# 10. Plot scatter plot and regression line
+plt.scatter(X, y, color='blue', label='Actual Data')
+
+plt.plot(
+    X,
+    model.predict(X),
+    color='red',
+    label='Regression Line'
+)
+
+plt.xlabel("Study Hours")
+plt.ylabel("Exam Score")
+plt.title("Student Performance Prediction")
+
+plt.legend()
+plt.show()
+
+project b(
+
+# =====================================
+# PROJECT B: CUSTOMER SEGMENTATION
+# =====================================
+
+# 1. Load dataset
+df = pd.read_csv("Mall_Customers.csv")
+
+print(df.head())
+
+# 2. Select features
+X = df[
+    ['Annual Income (k$)', 'Spending Score (1-100)']
+].values
+
+# 3. Normalize data
+mean = X.mean(axis=0)
+std = X.std(axis=0)
+
+X = (X - mean) / std
+
+
+# 4. Define K-Means manually
+def kmeans(X, k, max_iters=100):
+
+    np.random.seed(42)
+
+    # Randomly select centroids
+    indices = np.random.choice(
+        len(X), k, replace=False
+    )
+
+    centroids = X[indices].copy()
+
+    for iteration in range(max_iters):
+
+        # Calculate distances
+        distances = np.linalg.norm(
+            X[:, np.newaxis] - centroids,
+            axis=2
+        )
+
+        # Assign cluster labels
+        labels = np.argmin(distances, axis=1)
+
+        # Update centroids
+        new_centroids = []
+
+        for j in range(k):
+
+            cluster_points = X[labels == j]
+
+            if len(cluster_points) > 0:
+                new_centroids.append(
+                    cluster_points.mean(axis=0)
+                )
+            else:
+                new_centroids.append(centroids[j])
+
+        new_centroids = np.array(new_centroids)
+
+        # Check convergence
+        if np.allclose(centroids, new_centroids):
+            break
+
+        centroids = new_centroids
+
+    return labels, centroids
+
+
+# 5. Run K-Means for K = 2, 3, 4
+
+for k in [2, 3, 4]:
+
+    labels, centroids = kmeans(X, k)
+
+    plt.figure(figsize=(7, 5))
+
+    # Plot customer clusters
+    plt.scatter(
+        X[:, 0],
+        X[:, 1],
+        c=labels,
+        cmap='viridis'
+    )
+
+    # Plot centroids
+    plt.scatter(
+        centroids[:, 0],
+        centroids[:, 1],
+        color='red',
+        marker='X',
+        s=200,
+        label='Centroids'
+    )
+
+    plt.xlabel("Annual Income (Normalized)")
+    plt.ylabel("Spending Score (Normalized)")
+
+    plt.title(f"Customer Segmentation K={k}")
+
+    plt.legend()
+    plt.show()
+
+
+# 6. Display customer groups using K=3
+labels, centroids = kmeans(X, 3)
+
+df['Cluster'] = labels
+
+print("\nCustomer Groups:")
+
+print(
+    df[
+        ['Annual Income (k$)',
+         'Spending Score (1-100)',
+         'Cluster']
+    ].head(15)
+)
+
+# 7. Count customers in each group
+print("\nNumber of Customers in Each Cluster:")
+
+print(df['Cluster'].value_counts().sort_index())
+
+project c
+
+# =====================================
+# PROJECT C: SPAM EMAIL DETECTION
+# =====================================
+
+# 1. Load dataset
+df = pd.read_csv("spam_ham_dataset.csv")
+
+print(df.head())
+
+# 2. Select features and target
+X = df['text'].fillna('')
+y = df['label']
+
+# 3. Split dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+# 4. Convert text into numerical form
+tfidf = TfidfVectorizer(
+    stop_words='english',
+    max_features=5000
+)
+
+X_train = tfidf.fit_transform(X_train)
+
+X_test = tfidf.transform(X_test)
+
+# 5. Create Logistic Regression model
+model = LogisticRegression(max_iter=1000)
+
+# 6. Train model
+model.fit(X_train, y_train)
+
+# 7. Predict test data
+y_pred = model.predict(X_test)
+
+print("\nPredicted Results:")
+print(y_pred[:10])
+
+# 8. Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+
+print("\nModel Accuracy:",
+      accuracy * 100, "%")
+
+# 9. Classification report
+print("\nClassification Report:")
+
+print(classification_report(y_test, y_pred))
+
+# 10. Predict a new email
+new_email = [
+    "Congratulations! You won a free prize. Click now!"
+]
+
+new_email_vector = tfidf.transform(new_email)
+
+prediction = model.predict(new_email_vector)
+
+print("\nNew Email Prediction:")
+
+print(prediction[0])
+
+project d
+
+# =====================================
+# PROJECT D: HOUSE PRICE PREDICTION
+# =====================================
+
+# 1. Load dataset
+df = pd.read_csv("House Price.csv")
+
+print(df.head())
+
+# 2. Select features
+X = df[['Area', 'Rooms']]
+
+y = df['Price']
+
+# 3. Split dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+# 4. Create Linear Regression model
+model = LinearRegression()
+
+# 5. Train model
+model.fit(X_train, y_train)
+
+# 6. Predict house prices
+y_pred = model.predict(X_test)
+
+print("\nPredicted House Prices:")
+
+print(y_pred)
+
+# 7. Calculate Mean Absolute Error
+mae = mean_absolute_error(y_test, y_pred)
+
+print("\nMean Absolute Error:", mae)
+
+# 8. Calculate Mean Squared Error
+mse = mean_squared_error(y_test, y_pred)
+
+print("Mean Squared Error:", mse)
+
+# 9. Predict a new house price
+new_house = pd.DataFrame({
+    'Area': [1500],
+    'Rooms': [3]
+})
+
+prediction = model.predict(new_house)
+
+print("\nPredicted Price for New House:")
+
+print(prediction[0])
+
+# 10. Plot actual vs predicted prices
+plt.figure(figsize=(7, 5))
+
+plt.scatter(
+    y_test,
+    y_pred,
+    color='blue'
+)
+
+plt.xlabel("Actual House Price")
+plt.ylabel("Predicted House Price")
+
+plt.title("Actual vs Predicted House Prices")
+
+plt.show()
+
+# 11. Display model coefficients
+print("\nModel Coefficients:")
+
+print("Area Coefficient:", model.coef_[0])
+
+print("Rooms Coefficient:", model.coef_[1])
+
+print("Intercept:", model.intercept_)
